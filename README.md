@@ -8,3 +8,6 @@ The application covers critical elements, such as inventory and license-manageme
 
 ![Orbsec-backend-diagram.drawio.png](https://github.com/PetreVane/orbsec-backend/blob/main/screenshot/Orbsec-backend-diagram.drawio.png?raw=true)
 
+### Source code
+
+- [License service](https://github.com/PetreVane/orbsec-license-service)
