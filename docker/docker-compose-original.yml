@@ -1,0 +1,141 @@
+version: '2.1'
+
+services:
+
+  database:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "license"
+
+    volumes:
+        - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql
+        - ./data.sql:/docker-entrypoint-initdb.d/2-data.sql
+
+    networks:
+      backend:
+        aliases:
+          - "database"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # organization-database:
+  #   image: postgres:latest
+  #   ports:
+  #     - "5433:5432"
+  #
+  #   environment:
+  #     POSTGRES_USER: "postgres"
+  #     POSTGRES_PASSWORD: "postgres"
+  #     POSTGRES_DB:       "orbsec_dev_organization"
+  #
+  #   volumes:
+  #       - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql
+  #       - ./data.sql:/docker-entrypoint-initdb.d/2-data.sql
+  #
+  #   networks:
+  #     backend:
+  #       aliases:
+  #         - "organization-database"
+  #
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  configservice:
+    image: orbsec/config-service:0.0.1-SNAPSHOT
+    ports:
+       - "8071:8071"
+
+    environment:
+      SPRING_APPLICATION_NAME: "config-service"
+      SERVER_PORT: "8071"
+      SPRING_ PROFILES_ACTIVE: "native"
+      SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH-LOCATIONS: "file:///Volumes/ssd-drive/Development/smia-project/config-repository"
+      # spring.cloud.config.server.native.search-locations: "file:///Volumes/ssd-drive/Development/smia-project/config-repository"
+      ENCRYPT_KEY: "super-secret-encryption-key"
+
+    networks:
+      backend:
+        aliases:
+          - "configservice"
+
+  discovery-service:
+    image: orbsec/discovery-service:0.0.1-SNAPSHOT
+    ports:
+       - "8070:8070"
+
+    environment:
+      SPRING_CLOUD_CONFIG_URI: "http://configservice:8071"
+      SPRING_ PROFILES_ACTIVE: dev
+      ENCRYPT_KEY: "2b535344f640de02ec93cab7f6407085541896e672480d3d8118d35fea44d00478f506f248a47a2b2866f5c85531df4e"
+
+    depends_on:
+      configserver:
+        condition: service_started
+
+
+    networks:
+      backend:
+        aliases:
+          - "discovery-service"
+
+  licensingservice:
+    image: orbsec/licensing-service:0.0.1-SNAPSHOT
+
+    environment:
+      SPRING_CLOUD_CONFIG_URI: "http://configservice:8071"
+      SPRING_ PROFILES_ACTIVE: dev
+      DATABASESERVER_PORT: "5432"
+      ENCRYPT_KEY:       "2b535344f640de02ec93cab7f6407085541896e672480d3d8118d35fea44d00478f506f248a47a2b2866f5c85531df4e"
+      CONFIGSERVICE_PORT:   "8071"
+
+    depends_on:
+      database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+      discovery-service:
+        condition: service_started
+
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+  organizationservice:
+    image: orbsec/organization-service:0.0.1-SNAPSHOT
+
+    environment:
+      SPRING_CLOUD_CONFIG_URI: "http://configservice:8071"
+      SPRING_ PROFILES_ACTIVE: dev
+      DATABASESERVER_PORT: "5433"
+      ENCRYPT_KEY:       "2b535344f640de02ec93cab7f6407085541896e672480d3d8118d35fea44d00478f506f248a47a2b2866f5c85531df4e"
+      CONFIGSERVICE_PORT:   "8071"
+
+    depends_on:
+      organization-database:
+        condition: service_healthy
+      configserver:
+        condition: service_started
+      discovery-service:
+          condition: service_started
+
+    ports:
+      - "8081:8081"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
