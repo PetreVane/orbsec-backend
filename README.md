@@ -13,5 +13,7 @@ The application covers critical elements, such as inventory and license-manageme
 ### Source code
 
 - [Licensing service](https://github.com/PetreVane/orbsec-license-service)
+- [Organization service](https://github.com/PetreVane/organization-service/tree/main)
 - [Configuration service](https://github.com/PetreVane/orbsec-configuration-service)
 - [Configuration repository](https://github.com/PetreVane/orbsec-configuration-repo/)
+- [Discovery service](https://github.com/PetreVane/discovery-service)
