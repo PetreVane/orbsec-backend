@@ -43,8 +43,12 @@ However, if the OrganizationChangeEvent contains a DELETE action:
 
 ### Source code
 
+- [Gateway Service](https://github.com/PetreVane/orbsec-gateway-service)
+- [Discovery service](https://github.com/PetreVane/discovery-service)
+- [Configuration service](https://github.com/PetreVane/orbsec-configuration-service)
 - [Licensing service](https://github.com/PetreVane/orbsec-license-service)
 - [Organization service](https://github.com/PetreVane/organization-service/tree/main)
-- [Configuration service](https://github.com/PetreVane/orbsec-configuration-service)
+
 - [Configuration repository](https://github.com/PetreVane/orbsec-configuration-repo/)
-- [Discovery service](https://github.com/PetreVane/discovery-service)
+
+
