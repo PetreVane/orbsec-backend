@@ -7,7 +7,7 @@ Orbsec is a made-up company which is developing an asset management application.
 
 The application covers critical elements, such as inventory and license-management. This project is an ilustration of that application.
 
-### Description - still in development
+###  Description
 
 This application exposes several Rest endpoints, which allow basic CRUD operations.
 If you imagine the Organization-service & Licensing-service as being 2 database entities, the relationship between would be OneToMany, meaning an Organization can have multiple Licenses associated with it.
