@@ -9,7 +9,7 @@ The application covers critical elements, such as inventory and license-manageme
 ###  Description
 
 This application exposes several Rest endpoints, which allow basic CRUD operations.
-If you imagine the `Organization-service` & `Licensing-service` as being 2 database entities, the relationship between would be **OneToMany**, meaning an organization can have multiple licenses associated with it.
+If you imagine the `Organization-service` & `Licensing-service` as being 2 database entities, the relationship between entities would be **OneToMany**, meaning an organization can have multiple licenses associated with it.
 
 When a new record is added to Organization database, an `OrganizationChangeEvent` is produced and published to (kafka) organization_events topic.
 The Licensing service is listening to organization_events and reacts to incoming kafka messages.
