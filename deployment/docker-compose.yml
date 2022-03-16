@@ -53,7 +53,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -62,12 +62,12 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_JMX_HOSTNAME: broker
       KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
       CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'subscriber'
 
     networks:
       orbsec_backend:
@@ -285,6 +285,112 @@ services:
       timeout: 5s
       retries: 5
 
+# Starting orbsec services
+  config-service:
+      image: peter355/orbsec:config-service-0.0.1
+      ports:
+         - "7001:7001"
+
+      environment:
+        - eureka.client.serviceUrl.defaultZone=http://discovery-service:7002/eureka/
+        - kafka.bootstrap.servers=broker:9092
+        - logging.logstash.url=logstash:5001
+        - spring.zipkin.baseUrl=zipkin:9411
+
+      depends_on:
+        broker:
+          condition: service_started
+
+      networks:
+        orbsec_backend:
+          aliases:
+            - "config-service"
+
+  discovery-service:
+      image: peter355/orbsec:discovery-service-0.0.1
+      ports:
+         - "7002:7002"
+
+      environment:
+        - spring.cloud.config.uri=http://config-service:7001
+        - spring.profiles.active=default
+
+      depends_on:
+        broker:
+          condition: service_started
+        config-service:
+          condition: service_started
+
+      networks:
+        orbsec_backend:
+          aliases:
+            - "discovery-service"
+
+  gateway-service:
+      image: peter355/orbsec:gateway-service-0.0.1
+      ports:
+        - "7003:7003"
+
+      environment:
+        - spring.cloud.config.uri=http://config-service:7001
+        - spring.profiles.active=default
+
+      depends_on:
+        broker:
+          condition: service_started
+        config-service:
+          condition: service_started
+        discovery-service:
+          condition: service_started
+
+      networks:
+        orbsec_backend:
+          aliases:
+            - "gateway-service"
+
+  licensing-service:
+      image: peter355/orbsec:licensing-service-0.0.1
+      ports:
+        - "7004:7004"
+
+      environment:
+        - spring.cloud.config.uri=http://config-service:7001
+        - spring.profiles.active=default
+
+      depends_on:
+        broker:
+          condition: service_started
+        config-service:
+          condition: service_started
+        discovery-service:
+          condition: service_started
+
+      networks:
+        orbsec_backend:
+          aliases:
+            - "gateway-service"
+
+  organization-service:
+      image: peter355/orbsec:organization-service-0.0.1
+      ports:
+        - "7005:7005"
+
+      environment:
+        - spring.cloud.config.uri=http://config-service:7001
+        - spring.profiles.active=default
+
+      depends_on:
+        broker:
+          condition: service_started
+        config-service:
+          condition: service_started
+        discovery-service:
+          condition: service_started
+
+      networks:
+        orbsec_backend:
+          aliases:
+            - "gateway-service"
 
 networks:
   orbsec_backend:
